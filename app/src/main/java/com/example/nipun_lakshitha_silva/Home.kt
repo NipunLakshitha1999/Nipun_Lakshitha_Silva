@@ -18,11 +18,16 @@ class Home : AppCompatActivity() {
 
 //    lateinit var ref: Firebase
     lateinit var ListView: ListView;
+    lateinit var SearchView:SearchView;
     lateinit var toDoList:MutableList<String>;
     lateinit var toDoIdList:MutableList<String>;
 
+
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
 
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         this.window.setFlags(
@@ -32,16 +37,9 @@ class Home : AppCompatActivity() {
         supportActionBar!!.hide()
 
 
-
-
-
         setContentView(R.layout.activity_home)
 
         showListView();
-
-
-
-
 
 
         val addIconImage: ImageView = findViewById(R.id.addIconImage);
@@ -50,6 +48,7 @@ class Home : AppCompatActivity() {
             navigateAddNewPage();
         }
 
+        SearchView = findViewById(R.id.searchFeild);
 
     }
 
@@ -65,10 +64,14 @@ class Home : AppCompatActivity() {
     fun showListView(){
         toDoList = mutableListOf()
         toDoIdList= mutableListOf();
+
+
         ListView = findViewById(R.id.listView)
+
 
         val db = Firebase.firestore;
         val intent = Intent(this, Edit::class.java);
+
         db.collection("ToDo").addSnapshotListener(object :EventListener<QuerySnapshot>{
             override fun onEvent(value: QuerySnapshot?, error: FirebaseFirestoreException?) {
 
@@ -77,6 +80,8 @@ class Home : AppCompatActivity() {
                     println(error)
                 }
 
+
+
                 if (value!!.documents != null){
                     toDoList.clear()
                     for (e in value.documentChanges){
@@ -84,10 +89,10 @@ class Home : AppCompatActivity() {
                         toDoList.add(e.document.get("id").toString());
                     }
 
-                    val adapter: ArrayAdapter<String> = ArrayAdapter(
+                    val idAdapter:ArrayAdapter<String> = ArrayAdapter(
                         this@Home,android.R.layout.simple_expandable_list_item_1,toDoList
                     )
-                    ListView.adapter=adapter
+                    ListView.adapter=idAdapter
 
                     ListView.setOnItemClickListener { parent, view, position, id ->
                         intent.putExtra("ListId",toDoIdList[position])
@@ -95,11 +100,35 @@ class Home : AppCompatActivity() {
                         startActivity(intent);
                         finish();
                     }
+
+                    SearchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
+                        override fun onQueryTextSubmit(query: String?): Boolean {
+                            SearchView.clearFocus()
+                            if (toDoList.contains(query)){
+                                idAdapter.filter.filter(query)
+                            }else{
+                                Toast.makeText(applicationContext,"To Do not found",Toast.LENGTH_LONG).show()
+                            }
+
+                            return false
+                        }
+
+                        override fun onQueryTextChange(newText: String?): Boolean {
+                            idAdapter.filter.filter(newText)
+                            return false
+                        }
+
+                    })
                 }
             }
 
         })
 
+
+
+
     }
+
+
 
 }
