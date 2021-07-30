@@ -12,15 +12,20 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
 import com.google.android.gms.tasks.OnFailureListener
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
-class Edit : AppCompatActivity() {
+class Detail : AppCompatActivity() {
 
     lateinit var id:String
     lateinit var fieldId:String
     lateinit var text: EditText
+
+    lateinit var database: FirebaseDatabase
+    lateinit var data: DatabaseReference
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -32,27 +37,41 @@ class Edit : AppCompatActivity() {
         supportActionBar!!.hide()
 
 
-        setContentView(R.layout.activity_edit)
+        setContentView(R.layout.activity_detail)
 
+        //get to do list id from home page
         id= intent.getStringExtra("ListId").toString()
+
+        //get to do list field values from home page
         fieldId=intent.getStringExtra("fieldID").toString()
 
 
-        text= findViewById(R.id.txtInputOfEdit)
-        text.setText(fieldId,TextView.BufferType.EDITABLE)
+        //set text to edit text
+        text= findViewById(R.id.txtInputOfDetail)
 
-        val backBtn:ImageView = findViewById(R.id.backiconImageEdit)
+        if (intent.getStringExtra("editValue") != null){
+            val changeText= intent.getStringExtra("editValue")
+            text.setText(changeText,TextView.BufferType.SPANNABLE)
+        }else{
+            text.setText(id,TextView.BufferType.EDITABLE)
+        }
+
+
+        //back to home
+        val backBtn:ImageView = findViewById(R.id.backiconImageDetail)
 
         backBtn.setOnClickListener {
             navigateBackToHome();
         }
 
+        //navigate to edit page
         val btnEdit:Button = findViewById(R.id.btnEdit)
 
         btnEdit.setOnClickListener {
-            editTextAndUpdate()
+            navigateToEditPage()
         }
 
+        //delete field
         val btnDelete:Button = findViewById(R.id.btnDelete)
 
         btnDelete.setOnClickListener {
@@ -67,44 +86,29 @@ class Edit : AppCompatActivity() {
 
     fun navigateBackToHome(){
         val intent= Intent(this,Home::class.java);
+
         startActivity(intent)
         finish()
     }
-    fun editTextAndUpdate(){
-        val db= Firebase.firestore;
 
-        val value:String = text.text.toString();
-        val data = hashMapOf("id" to value);
-        db.collection("ToDo").document(id).set(data, SetOptions.merge()).addOnSuccessListener {
-            val builer= AlertDialog.Builder(this);
-            builer.setTitle(" Update Success");
-            builer.setMessage("Press Ok and Continue")
 
-            builer.setPositiveButton("OK"){dialogInterface,which ->
-                val intent= Intent(this,Home::class.java);
-                startActivity(intent);
-                finish()
-            }
-            builer.show();
-
-        }.addOnFailureListener(OnFailureListener {
-            val builer= AlertDialog.Builder(this);
-            builer.setTitle(" Update Faild ");
-            builer.setMessage("Press Ok and Continue")
-
-            builer.setPositiveButton("OK"){dialogInterface,which ->
-                finish();
-                startActivity(intent)
-            }
-            builer.show()
-        })
+    fun navigateToEditPage(){
+        val value= text.text.toString()
+        val intent= Intent(this,Edit::class.java);
+        intent.putExtra("id",id)
+        intent.putExtra("fieldId",value)
+        startActivity(intent)
+        finish()
 
     }
 
 
     fun deleteField(){
-        val db= Firebase.firestore;
-        db.collection("ToDo").document(id).delete().addOnSuccessListener {
+        database = FirebaseDatabase.getInstance();
+        data = database.getReference("Id")
+
+        val value= text.text.toString()
+        data.child(value).removeValue().addOnSuccessListener {
             val builer= AlertDialog.Builder(this);
             builer.setTitle(" Delete Success");
             builer.setMessage("Press Ok and Continue")
@@ -115,7 +119,6 @@ class Edit : AppCompatActivity() {
                 finish()
             }
             builer.show();
-
         }.addOnFailureListener(OnFailureListener {
             val builer= AlertDialog.Builder(this);
             builer.setTitle(" Delete Faild ");
@@ -127,6 +130,7 @@ class Edit : AppCompatActivity() {
             }
             builer.show()
         })
+
     }
 }
 

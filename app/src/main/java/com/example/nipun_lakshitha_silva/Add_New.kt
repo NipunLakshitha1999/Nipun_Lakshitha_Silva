@@ -11,11 +11,17 @@ import android.widget.EditText
 import android.widget.ImageView
 import androidx.appcompat.app.AlertDialog
 import com.google.android.gms.tasks.OnFailureListener
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
 class Add_New : AppCompatActivity() {
+    lateinit var database: FirebaseDatabase
+    lateinit var data: DatabaseReference
+    var addCount: Int=0;
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -26,12 +32,14 @@ class Add_New : AppCompatActivity() {
 
         setContentView(R.layout.activity_add__new)
 
+        //go to previos page
         val btnBack:ImageView =findViewById(R.id.backiconImage)
 
         btnBack.setOnClickListener {
             navigateBackToHomePage();
         }
 
+        // add to do
         val btnAddNew: Button =findViewById(R.id.btnAddNew)
         btnAddNew.setOnClickListener {
             addDataToFireStore();
@@ -43,6 +51,8 @@ class Add_New : AppCompatActivity() {
         startActivity(intent)
         finish()
     }
+
+
     fun addDataToFireStore(){
 
         val Edtext:EditText =findViewById(R.id.txtInputOfAddNew);
@@ -50,9 +60,11 @@ class Add_New : AppCompatActivity() {
         val value:String = Edtext.text.toString();
 
 
-        val db= Firebase.firestore;
-        val data = hashMapOf("id" to value);
-        db.collection("ToDo").document(value).set(data, SetOptions.merge()).addOnSuccessListener {
+        database = FirebaseDatabase.getInstance();
+        data = database.getReference("Id")
+
+
+        data.child(value).setValue(value).addOnSuccessListener {
             val builer=AlertDialog.Builder(this);
             builer.setTitle(" Success");
             builer.setMessage("Press Ok and Continue")
@@ -75,5 +87,6 @@ class Add_New : AppCompatActivity() {
             }
             builer.show()
         })
+
     }
 }

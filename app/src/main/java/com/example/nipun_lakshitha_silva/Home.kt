@@ -6,23 +6,22 @@ import android.os.Bundle
 import android.view.Window
 import android.view.WindowManager
 import android.widget.*
-import com.google.android.gms.tasks.OnCompleteListener
+import com.google.firebase.database.*
+import com.google.firebase.database.FirebaseDatabase.getInstance
 import com.google.firebase.firestore.*
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.squareup.okhttp.internal.Internal.instance
 
 class Home : AppCompatActivity() {
-//    private lateinit var list : ArrayList<String>
-//    private lateinit var ListView: ListView
 
-
-//    lateinit var ref: Firebase
     lateinit var ListView: ListView;
-    lateinit var SearchView:SearchView;
-    lateinit var toDoList:MutableList<String>;
-    lateinit var toDoIdList:MutableList<String>;
-
-
+    lateinit var SearchView: SearchView;
+    lateinit var toDoList: MutableList<String>;
+    lateinit var toDoIdList: MutableList<String>;
+    lateinit var database: FirebaseDatabase
+    lateinit var data: DatabaseReference
+    var count:Int = 0;
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,15 +38,20 @@ class Home : AppCompatActivity() {
 
         setContentView(R.layout.activity_home)
 
+
+        //show To Do List
         showListView();
 
 
+        //go to add new page
         val addIconImage: ImageView = findViewById(R.id.addIconImage);
 
         addIconImage.setOnClickListener {
             navigateAddNewPage();
         }
 
+
+        //find the search view
         SearchView = findViewById(R.id.searchFeild);
 
     }
@@ -55,71 +59,71 @@ class Home : AppCompatActivity() {
     fun navigateAddNewPage() {
 
         val intent = Intent(this, Add_New::class.java);
+        intent.putExtra("count",count)
         startActivity(intent);
         finish();
 
 
     }
 
-    fun showListView(){
+    fun showListView() {
         toDoList = mutableListOf()
-        toDoIdList= mutableListOf();
-
+        toDoIdList = mutableListOf();
 
         ListView = findViewById(R.id.listView)
 
-
-        val db = Firebase.firestore;
-        val intent = Intent(this, Edit::class.java);
-
-        db.collection("ToDo").addSnapshotListener(object :EventListener<QuerySnapshot>{
-            override fun onEvent(value: QuerySnapshot?, error: FirebaseFirestoreException?) {
+        database = FirebaseDatabase.getInstance();
+        data = database.getReference("Id")
 
 
-                if (error !=null){
-                    println(error)
+        val intent = Intent(this, Detail::class.java);
+
+
+        data.addValueEventListener(object : ValueEventListener {
+            override fun onCancelled(error: DatabaseError) {
+                println(error)
+            }
+
+            override fun onDataChange(snapshot: DataSnapshot) {
+                for (value in snapshot.children) {
+                    toDoIdList.add(value.key.toString())
+                    toDoList.add(value.value.toString())
+                }
+                count=toDoIdList.count()
+
+                val idAdapter: ArrayAdapter<String> = ArrayAdapter(
+                    this@Home, android.R.layout.simple_expandable_list_item_1, toDoList
+                )
+                ListView.adapter = idAdapter
+
+
+                ListView.setOnItemClickListener { parent, view, position, id ->
+                    intent.putExtra("ListId", toDoIdList[position])
+                    intent.putExtra("fieldID", toDoList[position])
+                    startActivity(intent);
+                    finish();
                 }
 
-
-
-                if (value!!.documents != null){
-                    toDoList.clear()
-                    for (e in value.documentChanges){
-                        toDoIdList.add(e.document.id);
-                        toDoList.add(e.document.get("id").toString());
-                    }
-
-                    val idAdapter:ArrayAdapter<String> = ArrayAdapter(
-                        this@Home,android.R.layout.simple_expandable_list_item_1,toDoList
-                    )
-                    ListView.adapter=idAdapter
-
-                    ListView.setOnItemClickListener { parent, view, position, id ->
-                        intent.putExtra("ListId",toDoIdList[position])
-                        intent.putExtra("fieldID",toDoList[position])
-                        startActivity(intent);
-                        finish();
-                    }
-
-                    SearchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
-                        override fun onQueryTextSubmit(query: String?): Boolean {
-                            SearchView.clearFocus()
-                            if (toDoList.contains(query)){
-                                idAdapter.filter.filter(query)
-                            }else{
-                                Toast.makeText(applicationContext,"To Do not found",Toast.LENGTH_LONG).show()
-                            }
-
-                            return false
+                SearchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+                    override fun onQueryTextSubmit(query: String?): Boolean {
+                        SearchView.clearFocus()
+                        if (toDoList.contains(query)) {
+                            idAdapter.filter.filter(query)
+                        } else {
+                            Toast.makeText(applicationContext, "To Do not found", Toast.LENGTH_LONG)
+                                .show()
                         }
 
-                        override fun onQueryTextChange(newText: String?): Boolean {
-                            idAdapter.filter.filter(newText)
-                            return false
-                        }
+                        return false
+                    }
 
-                    })
-                }
+                    override fun onQueryTextChange(newText: String?): Boolean {
+                        idAdapter.filter.filter(newText)
+                        return false
+                    }
+
+                })
+
             }
 
         })
@@ -128,7 +132,6 @@ class Home : AppCompatActivity() {
 
 
     }
-
 
 
 }
