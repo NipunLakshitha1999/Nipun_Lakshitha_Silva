@@ -41,6 +41,7 @@ class Add_New : AppCompatActivity() {
     fun navigateBackToHomePage(){
         val intent= Intent(this,Home::class.java);
         startActivity(intent)
+        finish()
     }
     fun addDataToFireStore(){
 
@@ -50,7 +51,7 @@ class Add_New : AppCompatActivity() {
 
 
         val db= Firebase.firestore;
-        val data = hashMapOf("name" to value);
+        val data = hashMapOf("id" to value);
         db.collection("ToDo").document(value).set(data, SetOptions.merge()).addOnSuccessListener {
             val builer=AlertDialog.Builder(this);
             builer.setTitle(" Success");
@@ -59,6 +60,7 @@ class Add_New : AppCompatActivity() {
             builer.setPositiveButton("OK"){dialogInterface,which ->
                 val intent= Intent(this,Home::class.java);
                 startActivity(intent);
+                finish()
             }
             builer.show();
 

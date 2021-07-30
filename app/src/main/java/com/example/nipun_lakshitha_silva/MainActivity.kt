@@ -6,9 +6,18 @@ import android.os.Bundle
 import android.view.Window
 import android.view.WindowManager
 import android.widget.Button
+import com.google.firebase.firestore.DocumentChange
+import com.google.firebase.firestore.EventListener
+import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.QuerySnapshot
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 
 
 class MainActivity : AppCompatActivity() {
+//    private lateinit var list : ArrayList<String>
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -27,7 +36,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun navigateHomePage(){
+
+
+
+
+
         val intent= Intent(this,Home::class.java);
+
         startActivity(intent);
+        finish();
     }
 }

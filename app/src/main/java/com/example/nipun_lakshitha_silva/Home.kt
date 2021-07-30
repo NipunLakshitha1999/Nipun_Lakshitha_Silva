@@ -12,11 +12,14 @@ import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 
 class Home : AppCompatActivity() {
-    private lateinit var list : ArrayList<String>
-    private lateinit var ListView: ListView
+//    private lateinit var list : ArrayList<String>
+//    private lateinit var ListView: ListView
 
 
-
+//    lateinit var ref: Firebase
+    lateinit var ListView: ListView;
+    lateinit var toDoList:MutableList<String>;
+    lateinit var toDoIdList:MutableList<String>;
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,41 +32,19 @@ class Home : AppCompatActivity() {
         supportActionBar!!.hide()
 
 
+
+
+
         setContentView(R.layout.activity_home)
-        ListView = findViewById(R.id.listView);
-        list = arrayListOf();
-        val db = Firebase.firestore;
-        db.collection("ToDo").addSnapshotListener(object : EventListener<QuerySnapshot> {
-            override fun onEvent(value: QuerySnapshot?, error: FirebaseFirestoreException?) {
-                if (error != null){
-                    println(error)
-                }
 
-                for (dc : DocumentChange in value!!.documentChanges){
-                    println(dc.document.id)
-                    list.add(dc.document.id)
-
-                }
-            }
-
-        })
-
-        val arrayAdapter : ArrayAdapter<String> = ArrayAdapter(
-            this,android.R.layout.simple_expandable_list_item_1,list
-        )
-        ListView.adapter = arrayAdapter;
-        ListView.setOnItemClickListener { parent, view, position, id ->
-            Toast.makeText(this,"Item Selected"+list[position],Toast.LENGTH_LONG).show()
-        }
         showListView();
 
+
+
+
+
+
         val addIconImage: ImageView = findViewById(R.id.addIconImage);
-
-
-
-
-
-
 
         addIconImage.setOnClickListener {
             navigateAddNewPage();
@@ -73,38 +54,51 @@ class Home : AppCompatActivity() {
     }
 
     fun navigateAddNewPage() {
+
         val intent = Intent(this, Add_New::class.java);
         startActivity(intent);
+        finish();
 
 
     }
 
     fun showListView(){
+        toDoList = mutableListOf()
+        toDoIdList= mutableListOf();
+        ListView = findViewById(R.id.listView)
 
-        list = arrayListOf();
         val db = Firebase.firestore;
-        db.collection("ToDo").addSnapshotListener(object : EventListener<QuerySnapshot> {
+        val intent = Intent(this, Edit::class.java);
+        db.collection("ToDo").addSnapshotListener(object :EventListener<QuerySnapshot>{
             override fun onEvent(value: QuerySnapshot?, error: FirebaseFirestoreException?) {
-                if (error != null){
+
+
+                if (error !=null){
                     println(error)
                 }
 
-                for (dc : DocumentChange in value!!.documentChanges){
-                    println(dc.document.id)
-                    list.add(dc.document.id)
+                if (value!!.documents != null){
+                    toDoList.clear()
+                    for (e in value.documentChanges){
+                        toDoIdList.add(e.document.id);
+                        toDoList.add(e.document.get("id").toString());
+                    }
 
+                    val adapter: ArrayAdapter<String> = ArrayAdapter(
+                        this@Home,android.R.layout.simple_expandable_list_item_1,toDoList
+                    )
+                    ListView.adapter=adapter
+
+                    ListView.setOnItemClickListener { parent, view, position, id ->
+                        intent.putExtra("ListId",toDoIdList[position])
+                        intent.putExtra("fieldID",toDoList[position])
+                        startActivity(intent);
+                        finish();
+                    }
                 }
             }
 
         })
-
-        val arrayAdapter : ArrayAdapter<String> = ArrayAdapter(
-            this,android.R.layout.simple_expandable_list_item_1,list
-        )
-        ListView.adapter = arrayAdapter;
-        ListView.setOnItemClickListener { parent, view, position, id ->
-            Toast.makeText(this,"Item Selected"+list[position],Toast.LENGTH_LONG).show()
-        }
 
     }
 
