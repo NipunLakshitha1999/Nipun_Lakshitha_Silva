@@ -15,7 +15,7 @@ import com.google.firebase.ktx.Firebase
 
 
 class MainActivity : AppCompatActivity() {
-//    private lateinit var list : ArrayList<String>
+
 
 
     override fun onCreate(savedInstanceState: Bundle?) {

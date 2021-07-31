@@ -20,7 +20,7 @@ import com.google.firebase.ktx.Firebase
 class Add_New : AppCompatActivity() {
     lateinit var database: FirebaseDatabase
     lateinit var data: DatabaseReference
-    var addCount: Int=0;
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
