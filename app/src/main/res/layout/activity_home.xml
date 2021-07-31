@@ -60,7 +60,11 @@
             android:id="@+id/searchFeild"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:queryHint="Search To Do" />
+            android:iconifiedByDefault="false"
+            android:queryHint="Search To Do"
+            android:background="@drawable/custome_background"
+            android:layout_marginTop="5dp"
+            />
 
         <ListView
             android:id="@+id/listView"
